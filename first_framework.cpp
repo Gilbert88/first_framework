@@ -53,32 +53,38 @@ public:
 		: anofun(tmp),
 		  tasksLaunched(0),
 		  tasksFinished(0),
-		  anser(0) {}
+		  answer(0) {}
 
 	virtual ~first_framework() {}
 
-	virtual void registered(SchedulerDrive*,
-							const FrameworkID&,
-							const MasterInfo&)
+	virtual void registered(SchedulerDriver* driver,
+							const FrameworkID& framworkID,
+							const MasterInfo& masterInfo)
 	{
-		cout << "registered!" << endl;
+		cout << "Scheduler Registered with id " << framworkID.value() << endl; //->get_value() << endl;
 	}
 
-	virtual void reregistered(SchedulerDrive*, const MasterInfo& masterInfo) {}
-
-	virtual void disconnected(SchedulerDrive* driver) {}
-
-	virtual void resourceOffers(SchedulerDrive* driver,
-								const Offer& offers)
+	virtual void reregistered(SchedulerDriver*, const MasterInfo& masterInfo) 
 	{
-
+		cout << "Scheduler re-registered!" << endl;
 	}
 
-	virtual void offerRescinded(SchedulerDrive* driver, const OfferID& offerId) {}
+	virtual void disconnected(SchedulerDriver* driver) {}
 
-	virtual void statusUpdate(SchedulerDrive* driver, const TaskStatus& status) {}
+	virtual void resourceOffers(SchedulerDriver* driver,
+								const vector<Offer>& offers)
+	{
+		cout << "Scheduler received offers " << offers.size() << endl;
+	}
 
-	virtual void frameworkMsssage(SchedulerDrive* driver,
+	virtual void offerRescinded(SchedulerDriver* driver, const OfferID& offerId) {}
+
+	virtual void statusUpdate(SchedulerDriver* driver, const TaskStatus& status) 
+	{
+		cout << "Status update: task " << endl;
+	}
+
+	virtual void frameworkMessage(SchedulerDriver* driver,
 								  const ExecutorID& executorId,
 								  const SlaveID& slaveId,
 								  const string& data)
@@ -86,11 +92,69 @@ public:
 		cout << data << endl;
 	}
 
-	virtual void slaveLost(SchedulerDrive* driver, const SlaveID& sid) {}
+	virtual void slaveLost(SchedulerDriver* driver, const SlaveID& sid) {}
 
-	virtual void executorList(SchedulerDrive* driver,
-							  const ExecutorID&)
+	virtual void executorLost(SchedulerDriver* driver,
+							  const ExecutorID& executorID,
+							  const SlaveID& slaveID,
+							  int status)
+	{
+		cout << "Executor " << executorID.value() << " lost!" << endl;
+	}
+
+	virtual void error(SchedulerDriver* driver, const string& message)
+	{
+		cout << message << endl;
+	}
+
+private:
+	const ExecutorInfo anofun;
+	size_t tasksLaunched;
+	size_t tasksFinished;
+	size_t answer;
 };
+
+#define shift argc--,argv++
+int main(int argc, char** argv)
+{
+  	string master;
+  	shift;
+  	while (true) {
+  	  string s = argc>0 ? argv[0] : "--help";
+  	  if (argc > 1 && s == "--master") {
+  	    master = argv[1];
+  	    shift; shift;
+  	  } else {
+  	    break;
+  	  }
+  	}
+	
+  	if (master.length() == 0) {
+  	  printf("Usage: SomeScheduler --master <ip>:<port>\n");
+  	  exit(1);
+  	}
+
+	cout << "Starting my first_framework on Mesos with master " << argv[0] << endl;
+
+	ExecutorInfo ff;
+	ff.mutable_executor_id()->set_value("random value acceptable");
+	ff.mutable_command()->set_value("random value command");
+	ff.set_name("random name");
+	ff.set_source("cpp");
+
+	first_framework scheduler(ff);
+
+	FrameworkInfo framework;
+	framework.set_user("gilbert");
+	framework.set_name("first_framework(c++)");
+	framework.set_principal("first_framework-cpp");
+
+	schedulerDriver = new MesosSchedulerDriver(&scheduler, framework, master);
+
+	int status = schedulerDriver->run() == DRIVER_STOPPED ? 0 : 1;
+
+	return 0;
+}
 
 
 

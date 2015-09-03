@@ -16,4 +16,15 @@
  * limitations under the License.
  */
 
- //start to learn standard c++ coding style
+#ifndef __FIRST_FRAMEWORK_HPP__
+#define __FIRST_FRAMEWORK_HPP__
+
+#include <string>
+
+using std::string;
+
+namespace mesos {
+  static const string LABEL_KEY_START_NUM = "start_number";
+  static const string LABEL_KEY_INC_NUM = "increment_number";
+};
+#endif // __FIRST_FRAMEWORK_HPP__
