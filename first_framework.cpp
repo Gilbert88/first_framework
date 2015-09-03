@@ -42,14 +42,68 @@ using std::map;
 
 using mesos::Resources;
 
-const float CPUS_PER_TASK = 0.2;
-const int32_t MEM_PER_TASK = 32;
-
-static queue<string> crawlQueue;
-static queue<string> renderQueue;
-static map<string, vector<string> > crawlResults;
-static map<string, string> renderResults;
-static map<string, size_t> processed;
-static size_t nextUrlId = 0;
-
 MesosSchedulerDriver* schedulerDriver;
+
+static void SIGINTHandler();
+
+class first_framework : public Scheduler
+{
+public:
+	first_framework(const ExecutorInfo& tmp)
+		: anofun(tmp),
+		  tasksLaunched(0),
+		  tasksFinished(0),
+		  anser(0) {}
+
+	virtual ~first_framework() {}
+
+	virtual void registered(SchedulerDrive*,
+							const FrameworkID&,
+							const MasterInfo&)
+	{
+		cout << "registered!" << endl;
+	}
+
+	virtual void reregistered(SchedulerDrive*, const MasterInfo& masterInfo) {}
+
+	virtual void disconnected(SchedulerDrive* driver) {}
+
+	virtual void resourceOffers(SchedulerDrive* driver,
+								const Offer& offers)
+	{
+
+	}
+
+	virtual void offerRescinded(SchedulerDrive* driver, const OfferID& offerId) {}
+
+	virtual void statusUpdate(SchedulerDrive* driver, const TaskStatus& status) {}
+
+	virtual void frameworkMsssage(SchedulerDrive* driver,
+								  const ExecutorID& executorId,
+								  const SlaveID& slaveId,
+								  const string& data)
+	{
+		cout << data << endl;
+	}
+
+	virtual void slaveLost(SchedulerDrive* driver, const SlaveID& sid) {}
+
+	virtual void executorList(SchedulerDrive* driver,
+							  const ExecutorID&)
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
