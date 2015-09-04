@@ -136,9 +136,13 @@ int main(int argc, char** argv)
 
 	cout << "Starting my first_framework on Mesos with master " << argv[0] << endl;
 
+	string path = realpath(dirname(argv[0]), NULL);
+ 	string mathURI = path + "/ff_executor";
+	cout << mathURI << endl;
+
 	ExecutorInfo ff;
 	ff.mutable_executor_id()->set_value("random value acceptable");
-	ff.mutable_command()->set_value("random value command");
+	ff.mutable_command()->set_value(mathURI);
 	ff.set_name("random name");
 	ff.set_source("cpp");
 
@@ -153,7 +157,11 @@ int main(int argc, char** argv)
 
 	int status = schedulerDriver->run() == DRIVER_STOPPED ? 0 : 1;
 
-	return 0;
+	schedulerDriver->stop();
+
+	delete schedulerDriver;
+
+	return status;
 }
 
 
