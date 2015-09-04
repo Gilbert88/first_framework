@@ -5,7 +5,7 @@ CXXCOMPILE = $(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@
 CXXLINK = $(CXX) $(INCLUDES) $(CXXFLAGS) -o $@
 
 default: all
-all: first_framework
+all: first_framework ff_executor
 
 HEADERS = first_framework.hpp
 
@@ -13,4 +13,4 @@ HEADERS = first_framework.hpp
 	$(CXXLINK) $< $(LDFLAGS)
 
 clean:
-	(rm -f first_framework)
+	(rm -f first_framework ff_executor)
