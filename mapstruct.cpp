@@ -7,11 +7,11 @@
 
 using namespace std;
 
-void copy_map(Puzzle_struct * ptr, int map_out[size][size])
+void copy_map(Puzzle_struct * ptr, int map_out[SIZE_][SIZE_])
 {
 	int i,j;
-	for( i = 0 ; i < size ; i++){
-		for(j = 0 ; j < size ; j++){
+	for( i = 0 ; i < SIZE_ ; i++){
+		for(j = 0 ; j < SIZE_ ; j++){
 			ptr->map[i][j] = map_out[i][j];
 		}
 	}

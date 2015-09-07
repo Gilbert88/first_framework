@@ -20,12 +20,18 @@
 #include <string>
 #include <vector>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cmath>
 
 #include <stout/lambda.hpp>
 #include <stout/numify.hpp>
 #include <stout/stringify.hpp>
 #include <mesos/executor.hpp>
 #include "first_framework.hpp"
+#include "constant.hpp"
+#include "mapstruct.hpp"
+#include "idAstar.hpp"
 
 using namespace mesos;
 
@@ -35,7 +41,51 @@ using std::string;
 
 static void runTask(ExecutorDriver* driver, const TaskInfo& task)
 {
-  cout << "running nothing now" << endl;
+  //cout << "running nothing now" << endl;
+  int total_time = 0;
+  int steps = 0;
+
+  int i;
+  FILE *file;
+  file = fopen("testPuzzle.txt", "r");
+
+  char buffer[100];
+
+  int map[SIZE_][SIZE_];
+  int count = 0,j = 0,pre = 0;
+
+  int myid,numprocs;
+  int  namelen;
+  char processor_name[MPI_MAX_PROCESSOR_NAME];
+
+  while( fgets (buffer, 60, file)!=NULL ) {
+        int map_i = 0;
+        while(buffer[j]!='\n'){
+          if(buffer[j] == ' '){
+            buffer[j] = '\0';
+            map[count][map_i] = atoi(&buffer[pre]);
+            pre = j+1;
+            map_i ++;
+          }
+          j++;
+        }
+        buffer[j] = '\0';
+        map[count][map_i] = atoi(&buffer[pre]);
+        pre = 0;j=0;count++;
+  }
+
+  for(i = 0 ; i < SIZE_ ; i ++){
+    for(j = 0 ; j < SIZE_ ; j ++){
+      cout << map[i][j];
+    }
+    cout << endl;
+  }
+  Puzzle_struct *puzzle = new Puzzle_struct;
+  copy_map(puzzle,map);
+  start_id_Astar(puzzle, total_time, steps);
+
+  driver->sendFrameworkMessage(stringify<int>(steps));
+  driver->sendFrameworkMessage(stringify<int>(total_time));
 
   TaskStatus status;
   status.mutable_task_id()->MergeFrom(task.task_id());

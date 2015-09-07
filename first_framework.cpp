@@ -83,7 +83,7 @@ public:
 
 		static Resources TASK_RESOURCES = Resources::parse(
 			"cpus:" + stringify<float>(CPUS_PER_TASK) +
-			";MEM:" + STRINGUFY<SIZE_T>(MEM_PER_TASK)).get();
+			";MEM:" + stringify<size_t>(MEM_PER_TASK)).get();
 
 		size_t maxTasks = 0;
 		for(size_t i = 0; i < offers.size(); i++){
@@ -97,7 +97,7 @@ public:
 		}
 
 		size_t counter = 0;
-		for(size_t i = 0; i < oofers.size(); i++){
+		for(size_t i = 0; i < offers.size(); i++){
 			const Offer& offer = offers[i];
 			Resources remaining = offer.resources();
 
@@ -111,12 +111,12 @@ public:
 				TaskInfo task;
 				task.set_name("puzzle_solver_id " + puzzle_solver_id);
 				task.mutable_task_id()->set_value(puzzle_solver_id);
-				task.mutable_slave_id()->MergeFrom(offer.slaveid());
+				task.mutable_slave_id()->MergeFrom(offer.slave_id());
 				task.mutable_executor()->MergeFrom(anofun);
 				task.mutable_resources()->MergeFrom(TASK_RESOURCES);
 
-				Lavels *labels = task.mutable_labels();
-				Lavel *label = labels->add_labels();
+				Labels *labels = task.mutable_labels();
+				Label *label = labels->add_labels();
 				label->set_key(LABEL_KEY_START_NUM);
 				label->set_value(stringify<size_t>(counter));
 
@@ -136,15 +136,15 @@ public:
 
 	virtual void statusUpdate(SchedulerDriver* driver, const TaskStatus& status) 
 	{
-		cout << "Status update: TaskStatus task_id:" << status.task_id() << endl;
+		cout << "Status update. " << endl;
 
 		if(status.state() == TASK_FINISHED){
 			if(status.has_message()){
 				size_t number = numify<size_t>(status.message()).get();
-				cout << "Task " << status.task_id().value() << " finished with ansewer = " << numbewr << endl;
+				cout << "Task " << status.task_id().value() << " finished with ansewer = " << number << endl;
 
-				if(ansewer == 0 || number < ansewer){
-					ansewer = number;
+				if(answer == 0 || number < answer){
+					answer = number;
 				}else{
 					cout << " Task " << status.task_id().value() << " finished." << endl;
 				}
@@ -152,7 +152,7 @@ public:
 				tasksFinished++;
 			}
 
-			if(status.state() == TASK_RESOURCES && status.has_message()){
+			if(status.state() == TASK_RUNNING && status.has_message()){
 				size_t number = numify<size_t>(status.message()).get();
 				if(answer != 0 && number > answer){
 					driver->stop();
@@ -195,6 +195,15 @@ private:
 	size_t answer;
 };
 
+static void SIGINTHandler(int signum)
+{
+  if (schedulerDriver != NULL) {
+    schedulerDriver->stop();
+  }
+  delete schedulerDriver;
+  exit(0);
+}
+
 #define shift argc--,argv++
 int main(int argc, char** argv)
 {
@@ -233,6 +242,12 @@ int main(int argc, char** argv)
 	framework.set_user("gilbert");
 	framework.set_name("first_framework(c++)");
 	framework.set_principal("first_framework-cpp");
+
+ 	struct sigaction action;
+ 	action.sa_handler = SIGINTHandler;
+ 	sigemptyset(&action.sa_mask);
+ 	action.sa_flags = 0;
+ 	sigaction(SIGINT, &action, NULL);
 
 	schedulerDriver = new MesosSchedulerDriver(&scheduler, framework, master);
 
