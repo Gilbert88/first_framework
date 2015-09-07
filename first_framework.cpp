@@ -42,6 +42,9 @@ using std::map;
 
 using mesos::Resources;
 
+const float CPUS_PER_TASK = 0.4;
+const int32_t MEM_PER_TASK = 32;
+
 MesosSchedulerDriver* schedulerDriver;
 
 static void SIGINTHandler();
@@ -61,12 +64,12 @@ public:
 							const FrameworkID& framworkID,
 							const MasterInfo& masterInfo)
 	{
-		cout << "Scheduler Registered with id " << framworkID.value() << endl; //->get_value() << endl;
+		cout << "Scheduler Registered with id " << framworkID.value() << "is registered." << endl;
 	}
 
 	virtual void reregistered(SchedulerDriver*, const MasterInfo& masterInfo) 
 	{
-		cout << "Scheduler re-registered!" << endl;
+		cout << "Scheduler re-registered with masterInfo " << masterInfo.id() << endl;
 	}
 
 	virtual void disconnected(SchedulerDriver* driver) {}
@@ -75,13 +78,91 @@ public:
 								const vector<Offer>& offers)
 	{
 		cout << "Scheduler received offers " << offers.size() << endl;
+
+		if(tasksLaunched) return;
+
+		static Resources TASK_RESOURCES = Resources::parse(
+			"cpus:" + stringify<float>(CPUS_PER_TASK) +
+			";MEM:" + STRINGUFY<SIZE_T>(MEM_PER_TASK)).get();
+
+		size_t maxTasks = 0;
+		for(size_t i = 0; i < offers.size(); i++){
+			const Offer& offer = offers[i];
+			Resources remaining = offer.resources();
+
+			while(remaining.flatten().contains(TASK_RESOURCES)){
+				maxTasks++;
+				remaining -= TASK_RESOURCES;
+			}
+		}
+
+		size_t counter = 0;
+		for(size_t i = 0; i < oofers.size(); i++){
+			const Offer& offer = offers[i];
+			Resources remaining = offer.resources();
+
+			vector<TaskInfo> tasks;
+			while(remaining.flatten().contains(TASK_RESOURCES)){
+				counter++;
+				remaining -= TASK_RESOURCES;
+
+				string puzzle_solver_id = stringify<size_t>(counter);
+
+				TaskInfo task;
+				task.set_name("puzzle_solver_id " + puzzle_solver_id);
+				task.mutable_task_id()->set_value(puzzle_solver_id);
+				task.mutable_slave_id()->MergeFrom(offer.slaveid());
+				task.mutable_executor()->MergeFrom(anofun);
+				task.mutable_resources()->MergeFrom(TASK_RESOURCES);
+
+				Lavels *labels = task.mutable_labels();
+				Lavel *label = labels->add_labels();
+				label->set_key(LABEL_KEY_START_NUM);
+				label->set_value(stringify<size_t>(counter));
+
+				label = labels->add_labels();
+				label->set_key(LABEL_KEY_START_NUM);
+				label->set_value(stringify<size_t>(maxTasks));
+
+				tasksLaunched++;
+				tasks.push_back(task);
+			}
+
+			driver->launchTasks(offer.id(), tasks);
+		}
 	}
 
 	virtual void offerRescinded(SchedulerDriver* driver, const OfferID& offerId) {}
 
 	virtual void statusUpdate(SchedulerDriver* driver, const TaskStatus& status) 
 	{
-		cout << "Status update: task " << endl;
+		cout << "Status update: TaskStatus task_id:" << status.task_id() << endl;
+
+		if(status.state() == TASK_FINISHED){
+			if(status.has_message()){
+				size_t number = numify<size_t>(status.message()).get();
+				cout << "Task " << status.task_id().value() << " finished with ansewer = " << numbewr << endl;
+
+				if(ansewer == 0 || number < ansewer){
+					ansewer = number;
+				}else{
+					cout << " Task " << status.task_id().value() << " finished." << endl;
+				}
+
+				tasksFinished++;
+			}
+
+			if(status.state() == TASK_RESOURCES && status.has_message()){
+				size_t number = numify<size_t>(status.message()).get();
+				if(answer != 0 && number > answer){
+					driver->stop();
+				}
+			}
+
+			if(tasksFinished == tasksLaunched){
+				driver->stop();
+			}
+		}
 	}
 
 	virtual void frameworkMessage(SchedulerDriver* driver,
@@ -104,7 +185,7 @@ public:
 
 	virtual void error(SchedulerDriver* driver, const string& message)
 	{
-		cout << message << endl;
+		cout << "error message: " << message << endl;
 	}
 
 private:
@@ -134,7 +215,7 @@ int main(int argc, char** argv)
   	  exit(1);
   	}
 
-	cout << "Starting my first_framework on Mesos with master " << argv[0] << endl;
+	cout << "Starting my first_framework on Mesos with master " << endl;
 
 	string path = realpath(dirname(argv[0]), NULL);
  	string mathURI = path + "/ff_executor";
