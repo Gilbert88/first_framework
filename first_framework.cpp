@@ -29,7 +29,9 @@
 #include <map>
 #include <mesos/resources.hpp>
 #include <mesos/scheduler.hpp>
+#include <stout/stringify.hpp>
 #include "first_framework.hpp"
+#include "constant.hpp"
 
 using namespace mesos;
 
@@ -42,7 +44,7 @@ using std::map;
 
 using mesos::Resources;
 
-const float CPUS_PER_TASK = 0.4;
+const float CPUS_PER_TASK = 1.0;
 const int32_t MEM_PER_TASK = 32;
 
 MesosSchedulerDriver* schedulerDriver;
@@ -52,8 +54,8 @@ static void SIGINTHandler();
 class first_framework : public Scheduler
 {
 public:
-	first_framework(const ExecutorInfo& tmp)
-		: anofun(tmp),
+	first_framework(const ExecutorInfo& _puzzleSolver)
+		: puzzleSolver(_puzzleSolver),
 		  tasksLaunched(0),
 		  tasksFinished(0),
 		  answer(0) {}
@@ -69,7 +71,7 @@ public:
 
 	virtual void reregistered(SchedulerDriver*, const MasterInfo& masterInfo) 
 	{
-		cout << "Scheduler re-registered with masterInfo " << masterInfo.id() << endl;
+		//cout << "Scheduler re-registered with masterInfo " << masterInfo.id() << endl;
 	}
 
 	virtual void disconnected(SchedulerDriver* driver) {}
@@ -77,13 +79,13 @@ public:
 	virtual void resourceOffers(SchedulerDriver* driver,
 								const vector<Offer>& offers)
 	{
-		cout << "Scheduler received offers " << offers.size() << endl;
+		//cout << "Scheduler received offers " << offers.size() << endl;
 
 		if(tasksLaunched) return;
 
 		static Resources TASK_RESOURCES = Resources::parse(
 			"cpus:" + stringify<float>(CPUS_PER_TASK) +
-			";MEM:" + stringify<size_t>(MEM_PER_TASK)).get();
+			";mem:" + stringify<size_t>(MEM_PER_TASK)).get();
 
 		size_t maxTasks = 0;
 		for(size_t i = 0; i < offers.size(); i++){
@@ -106,13 +108,13 @@ public:
 				counter++;
 				remaining -= TASK_RESOURCES;
 
-				string puzzle_solver_id = stringify<size_t>(counter);
+				string puzzle_solver_id = "PS" + stringify<size_t>(counter);
 
 				TaskInfo task;
-				task.set_name("puzzle_solver_id " + puzzle_solver_id);
+				task.set_name("PuzzleSolver " + puzzle_solver_id);
 				task.mutable_task_id()->set_value(puzzle_solver_id);
 				task.mutable_slave_id()->MergeFrom(offer.slave_id());
-				task.mutable_executor()->MergeFrom(anofun);
+				task.mutable_executor()->MergeFrom(puzzleSolver);
 				task.mutable_resources()->MergeFrom(TASK_RESOURCES);
 
 				Labels *labels = task.mutable_labels();
@@ -121,7 +123,7 @@ public:
 				label->set_value(stringify<size_t>(counter));
 
 				label = labels->add_labels();
-				label->set_key(LABEL_KEY_START_NUM);
+				label->set_key(LABEL_KEY_INC_NUM);
 				label->set_value(stringify<size_t>(maxTasks));
 
 				tasksLaunched++;
@@ -145,23 +147,23 @@ public:
 
 				if(answer == 0 || number < answer){
 					answer = number;
-				}else{
-					cout << " Task " << status.task_id().value() << " finished." << endl;
+				}
+			}else{
+					cout << "Task " << status.task_id().value() << " finished." << endl;
 				}
 
 				tasksFinished++;
-			}
+		}
 
-			if(status.state() == TASK_RUNNING && status.has_message()){
-				size_t number = numify<size_t>(status.message()).get();
-				if(answer != 0 && number > answer){
-					driver->stop();
-				}
-			}
-
-			if(tasksFinished == tasksLaunched){
+		if(status.state() == TASK_RUNNING && status.has_message()){
+			size_t number = numify<size_t>(status.message()).get();
+			if(answer != 0 && number > answer){
 				driver->stop();
 			}
+		}
+
+		if(tasksFinished == tasksLaunched){
+			driver->stop();
 		}
 	}
 
@@ -189,7 +191,7 @@ public:
 	}
 
 private:
-	const ExecutorInfo anofun;
+	const ExecutorInfo puzzleSolver;
 	size_t tasksLaunched;
 	size_t tasksFinished;
 	size_t answer;
@@ -231,15 +233,15 @@ int main(int argc, char** argv)
 	cout << mathURI << endl;
 
 	ExecutorInfo ff;
-	ff.mutable_executor_id()->set_value("random value acceptable");
+	ff.mutable_executor_id()->set_value("PuzzleSolver");
 	ff.mutable_command()->set_value(mathURI);
-	ff.set_name("random name");
+	ff.set_name("PuzzleExecutor(c++)");
 	ff.set_source("cpp");
 
 	first_framework scheduler(ff);
 
 	FrameworkInfo framework;
-	framework.set_user("gilbert");
+	framework.set_user("");
 	framework.set_name("first_framework(c++)");
 	framework.set_principal("first_framework-cpp");
 

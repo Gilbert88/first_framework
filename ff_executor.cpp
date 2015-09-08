@@ -28,7 +28,6 @@
 #include <stout/numify.hpp>
 #include <stout/stringify.hpp>
 #include <mesos/executor.hpp>
-#include "first_framework.hpp"
 #include "constant.hpp"
 #include "mapstruct.hpp"
 #include "idAstar.hpp"
@@ -42,6 +41,8 @@ using std::string;
 static void runTask(ExecutorDriver* driver, const TaskInfo& task)
 {
   //cout << "running nothing now" << endl;
+
+driver->sendFrameworkMessage("!!!!!");
   int total_time = 0;
   int steps = 0;
 
@@ -74,6 +75,8 @@ static void runTask(ExecutorDriver* driver, const TaskInfo& task)
         pre = 0;j=0;count++;
   }
 
+
+driver->sendFrameworkMessage("@@@@@");
   for(i = 0 ; i < SIZE_ ; i ++){
     for(j = 0 ; j < SIZE_ ; j ++){
       cout << map[i][j];
@@ -87,9 +90,12 @@ static void runTask(ExecutorDriver* driver, const TaskInfo& task)
   driver->sendFrameworkMessage(stringify<int>(steps));
   driver->sendFrameworkMessage(stringify<int>(total_time));
 
+  total_time = 57;
+
   TaskStatus status;
   status.mutable_task_id()->MergeFrom(task.task_id());
   status.set_state(TASK_FINISHED);
+  status.set_message(stringify<size_t>(total_time));
   driver->sendStatusUpdate(status);
 }
 

@@ -18,7 +18,7 @@ int main(int argv, char **argc){
 
 	char buffer[100];
 
-	int map[size][size];
+	int map[SIZE_][SIZE_];
 	int count = 0,j = 0,pre = 0;
 
 	int myid,numprocs;
@@ -41,14 +41,16 @@ int main(int argv, char **argc){
 	      pre = 0;j=0;count++;
 	}
 
-	for(i = 0 ; i < size ; i ++){
-		for(j = 0 ; j < size ; j ++){
+	for(i = 0 ; i < SIZE_ ; i ++){
+		for(j = 0 ; j < SIZE_ ; j ++){
 			cout << map[i][j];
 		}
 		cout << endl;
 	}
 	Puzzle_struct *puzzle = new Puzzle_struct;
 	copy_map(puzzle,map);
-	start_id_Astar(puzzle);
+	int total_time = 0;
+	int steps = 0;
+	start_id_Astar(puzzle, total_time, steps);
 	return 0;
 }
