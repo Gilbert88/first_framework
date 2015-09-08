@@ -42,55 +42,56 @@ static void runTask(ExecutorDriver* driver, const TaskInfo& task)
 {
   //cout << "running nothing now" << endl;
 
-driver->sendFrameworkMessage("!!!!!");
-  int total_time = 0;
+  float total_time = 0;
   int steps = 0;
 
   int i;
-  FILE *file;
-  file = fopen("testPuzzle.txt", "r");
+  // FILE *file;
+  // file = fopen("testPuzzle.txt", "r");
 
   char buffer[100];
 
-  int map[SIZE_][SIZE_];
+  int map[SIZE_][SIZE_] = {{9, 4, 3, 1},
+                           {13, 11, 15, 14},
+                           {8, 6, 10, 2},
+                           {-1, 12, 7, 5}};
+                           
   int count = 0,j = 0,pre = 0;
 
   int myid,numprocs;
   int  namelen;
   char processor_name[MPI_MAX_PROCESSOR_NAME];
 
-  while( fgets (buffer, 60, file)!=NULL ) {
-        int map_i = 0;
-        while(buffer[j]!='\n'){
-          if(buffer[j] == ' '){
-            buffer[j] = '\0';
-            map[count][map_i] = atoi(&buffer[pre]);
-            pre = j+1;
-            map_i ++;
-          }
-          j++;
-        }
-        buffer[j] = '\0';
-        map[count][map_i] = atoi(&buffer[pre]);
-        pre = 0;j=0;count++;
-  }
+  // while( fgets (buffer, 60, file)!=NULL ) {
+  //       int map_i = 0;
+  //       while(buffer[j]!='\n'){
+  //         if(buffer[j] == ' '){
+  //           buffer[j] = '\0';
+  //           map[count][map_i] = atoi(&buffer[pre]);
+  //           pre = j+1;
+  //           map_i ++;
+  //         }
+  //         j++;
+  //       }
+  //       buffer[j] = '\0';
+  //       map[count][map_i] = atoi(&buffer[pre]);
+  //       pre = 0;j=0;count++;
+  // }
 
-
-driver->sendFrameworkMessage("@@@@@");
-  for(i = 0 ; i < SIZE_ ; i ++){
-    for(j = 0 ; j < SIZE_ ; j ++){
-      cout << map[i][j];
-    }
-    cout << endl;
-  }
+    // for(i = 0 ; i < SIZE_ ; i ++){
+    //   for(j = 0 ; j < SIZE_ ; j ++){
+    //     cout << map[i][j];
+    //   }
+    //   cout << endl;
+    // }
   Puzzle_struct *puzzle = new Puzzle_struct;
   copy_map(puzzle,map);
   start_id_Astar(puzzle, total_time, steps);
 
-  driver->sendFrameworkMessage(stringify<int>(steps));
-  driver->sendFrameworkMessage(stringify<int>(total_time));
+  string msg = "Found with cutoff steps: ";
+  driver->sendFrameworkMessage(msg.append(stringify<int>(steps)));
 
-  total_time = 57;
+  //total_time = 57;
 
   TaskStatus status;
   status.mutable_task_id()->MergeFrom(task.task_id());
@@ -98,7 +99,6 @@ driver->sendFrameworkMessage("@@@@@");
   status.set_message(stringify<size_t>(total_time));
   driver->sendStatusUpdate(status);
 }
-
 
 void* start(void* arg)
 {

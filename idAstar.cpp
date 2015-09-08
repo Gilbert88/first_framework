@@ -18,7 +18,7 @@ double get_seconds() {
 }
 
 
-void start_id_Astar(Puzzle_struct *puzzle_input, int &total_time, int &steps){
+void start_id_Astar(Puzzle_struct *puzzle_input, float &total_time, int &steps){
 
 	Puzzle_struct *puzzle = new Puzzle_struct;
 	copy_map(puzzle,puzzle_input->map);
@@ -27,6 +27,7 @@ void start_id_Astar(Puzzle_struct *puzzle_input, int &total_time, int &steps){
 	ttime = get_seconds();
 //	long tStart = System.currentTimeMillis();
 	while(1){
+
 		if(rt!=1){
 			cutoff++;
 			cout << "Restart with cutoff " << cutoff << endl;
@@ -34,6 +35,7 @@ void start_id_Astar(Puzzle_struct *puzzle_input, int &total_time, int &steps){
 		}
 		else{
 			break;
+
 		}
 	}
 //	//long tEnd = System.currentTimeMillis();
@@ -44,7 +46,7 @@ void start_id_Astar(Puzzle_struct *puzzle_input, int &total_time, int &steps){
 }
 
 
-int search_id_Astar(Puzzle_struct *puzzle, int cost_reach_node , int action , int cutoff, int &total_time, int &steps){
+int search_id_Astar(Puzzle_struct *puzzle, int cost_reach_node , int action , int cutoff, float &total_time, int &steps){
 	int x_position;
 	int distance_to_final = heuristic1_Mahattan_Distance(puzzle->map, &x_position);
 	//System.out.cout << "distance_to_final is " << distance_to_final << endl;
@@ -57,7 +59,8 @@ int search_id_Astar(Puzzle_struct *puzzle, int cost_reach_node , int action , in
 		double t = get_seconds();
 		total_time = ((float)(t-ttime))/CLOCKS_PER_SEC;
 		cout << "time = " << total_time << " seconds." << endl;
-		exit(0);
+		return 1;
+		//exit(0);
 	}
 	if(distance_to_final + cost_reach_node > cutoff){
 		//System.out.cout << "Reach cutoff with cost_reach_node " << cost_reach_node << endl;

@@ -44,7 +44,7 @@ using std::map;
 
 using mesos::Resources;
 
-const float CPUS_PER_TASK = 1.0;
+const float CPUS_PER_TASK = 2.0;
 const int32_t MEM_PER_TASK = 32;
 
 MesosSchedulerDriver* schedulerDriver;
@@ -142,8 +142,8 @@ public:
 
 		if(status.state() == TASK_FINISHED){
 			if(status.has_message()){
-				size_t number = numify<size_t>(status.message()).get();
-				cout << "Task " << status.task_id().value() << " finished with ansewer = " << number << endl;
+				double number = numify<size_t>(status.message()).get();
+				cout << "Task " << status.task_id().value() << " finished with total time: " << number << " seconds" << endl;
 
 				if(answer == 0 || number < answer){
 					answer = number;
