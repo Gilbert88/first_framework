@@ -1,6 +1,3 @@
-# first_framework
-framework for test
-
 First Framework: 15PuzzleSolver
 ====================
 
