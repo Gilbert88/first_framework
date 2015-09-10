@@ -40,28 +40,20 @@ using std::string;
 
 static void runTask(ExecutorDriver* driver, const TaskInfo& task)
 {
-  //cout << "running nothing now" << endl;
-
   float total_time = 0;
   int steps = 0;
-
-  int i;
   // FILE *file;
   // file = fopen("testPuzzle.txt", "r");
-
   char buffer[100];
-
   int map[SIZE_][SIZE_] = {{9, 4, 3, 1},
                            {13, 11, 15, 14},
                            {8, 6, 10, 2},
                            {-1, 12, 7, 5}};
                            
-  int count = 0,j = 0,pre = 0;
-
-  int myid,numprocs;
-  int  namelen;
-  char processor_name[MPI_MAX_PROCESSOR_NAME];
-
+  // int count = 0,j = 0,pre = 0;
+  // int myid,numprocs;
+  // int  namelen;
+  // char processor_name[MPI_MAX_PROCESSOR_NAME];
   // while( fgets (buffer, 60, file)!=NULL ) {
   //       int map_i = 0;
   //       while(buffer[j]!='\n'){
@@ -77,7 +69,6 @@ static void runTask(ExecutorDriver* driver, const TaskInfo& task)
   //       map[count][map_i] = atoi(&buffer[pre]);
   //       pre = 0;j=0;count++;
   // }
-
     // for(i = 0 ; i < SIZE_ ; i ++){
     //   for(j = 0 ; j < SIZE_ ; j ++){
     //     cout << map[i][j];
@@ -90,8 +81,6 @@ static void runTask(ExecutorDriver* driver, const TaskInfo& task)
 
   string msg = "Found with cutoff steps: ";
   driver->sendFrameworkMessage(msg.append(stringify<int>(steps)));
-
-  //total_time = 57;
 
   TaskStatus status;
   status.mutable_task_id()->MergeFrom(task.task_id());
@@ -128,7 +117,6 @@ class MathExecutor : public Executor
     }
 
     virtual void disconnected(ExecutorDriver* driver) {}
-
 
     virtual void launchTask(ExecutorDriver* driver, const TaskInfo& task)
     {
