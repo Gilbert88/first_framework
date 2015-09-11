@@ -1,7 +1,7 @@
 First Framework: 15PuzzleSolver
 ====================
 
-[Problem Description by clicking here](https://projecteuler.net/problem=52)
+[Problem Description by clicking here](https://en.wikipedia.org/wiki/15_puzzle)
 
 ### Requirements
 
